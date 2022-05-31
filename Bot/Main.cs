@@ -8,11 +8,13 @@ namespace Bot
 {
 	public class NewGenerationBotOfDiscord
 	{
-		const string BotToken = "";
+		readonly string botToken;
 		readonly DiscordSocketClient client;
-		InteractionService interactionService;
+		readonly InteractionService interactionService;
 
-		public NewGenerationBotOfDiscord()
+		public ulong DebugGuildId = default;
+
+		public NewGenerationBotOfDiscord(string token)
 		{
 			var config = new DiscordSocketConfig()
 			{
@@ -21,6 +23,8 @@ namespace Bot
 			};
 			client = new DiscordSocketClient(config);
 			interactionService = new InteractionService(client);
+			
+			botToken = token;
 		}
 
 		public async Task StartAsync()
@@ -28,7 +32,7 @@ namespace Bot
 			var interactionsHandler = new Handler(client, interactionService);
 			await interactionsHandler.InstallModulesAsync();
 
-			await client.LoginAsync(Discord.TokenType.Bot, BotToken, false); // TODO: валидацию токена
+			await client.LoginAsync(Discord.TokenType.Bot, botToken, false); // TODO: валидацию токена
 			await client.StartAsync();
 
 			client.Ready += OnReady;
@@ -42,7 +46,7 @@ namespace Bot
 		async Task OnReady()
 		{
 #if DEBUG
-			await interactionService.RegisterCommandsToGuildAsync(0); // TODO: из конфига вытягивать айди дебаг-гильдии
+			await interactionService.RegisterCommandsToGuildAsync(DebugGuildId); //TODO: проверка на вхождение бота в target-гильдию?
 #else
 			await interactionService.RegisterCommandsGloballyAsync(); // TODO: проверка необходимости регестрации команд
 #endif
